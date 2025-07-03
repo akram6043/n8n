@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input:invalid,
+        select:invalid {
+            border-color: #ff4444;
+        }
+
+        input:valid,
+        select:valid {
+            border-color: #00C851;
+        }
+
+        .error {
+            color: #ff4444;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        button {
+            background-color: #4285f4;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #3367d6;
+        }
+
+        #form-success {
+            color: #00C851;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+
+        #form-error {
+            color: #ff4444;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Contact Form</h1>
+    <form id="contactForm">
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" pattern="[A-Za-z ]+" title="Letters and spaces only">
+            <div class="error" id="name-error">Please enter letters only (no numbers or special characters)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+            <div class="error" id="email-error">Please enter a valid email (example@domain.com)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" pattern="[0-9]{10,15}">
+            <div class="error" id="phone-error">Please enter 10-15 digits</div>
+        </div>
+
+        <div class="form-group">
+            <label for="company_size">Company Size</label>
+            <input type="number" id="company_size" name="company_size" min="1" max="100000">
+            <div class="error" id="size-error">Please enter between 1-100,000</div>
+        </div>
+
+        <div class="form-group">
+            <label for="budget">Budget</label>
+            <input type="number" id="budget" name="budget" min="0">
+            <div class="error" id="budget-error">Please enter a positive number</div>
+        </div>
+
+        <div class="form-group">
+            <label for="interest_level">Interest Level</label>
+            <select id="interest_level" name="interest_level">
+                <option value="">Select an option</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <button type="submit" id="submit-btn">Submit <span id="spinner" class="loading"
+                style="display:none;"></span></button>
+    </form>
+
+    <div id="form-success">Thank you! Your form has been submitted successfully.</div>
+    <div id="form-error">There was an error submitting the form. Please try again later.</div>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Reset messages
+            document.getElementById('form-success').style.display = 'none';
+            document.getElementById('form-error').style.display = 'none';
+            document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
+
+            // Show loading spinner
+            const submitBtn = document.getElementById('submit-btn');
+            const spinner = document.getElementById('spinner');
+            submitBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            // Validate form
+            let isValid = true;
+            const form = e.target;
+
+            // Validate full_name (letters only)
+            const namePattern = /^[A-Za-z ]+$/;
+            if (form.full_name.value && !namePattern.test(form.full_name.value)) {
+                document.getElementById('name-error').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate email
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (form.email.value && !emailPattern.test(form.email.value)) {
+                document.getElementById('email-error').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate phone
+            if (form.phone.value && !form.phone.validity.valid) {
+                document.getElementById('phone-error').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate company size
+            if (form.company_size.value &&
+                (form.company_size.value < 1 || form.company_size.value > 100000)) {
+                document.getElementById('size-error').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate budget
+            if (form.budget.value && form.budget.value < 0) {
+                document.getElementById('budget-error').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Form is valid, send to webhook
+                const formData = {
+                    full_name: form.full_name.value || null,
+                    email: form.email.value || null,
+                    phone: form.phone.value || null,
+                    company_size: form.company_size.value || null,
+                    budget: form.budget.value || null,
+                    interest_level: form.interest_level.value || null
+                };
+
+                const response = await fetch('https://eqp225z2.rpcld.co/webhook-test/contact-form', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    // Show success message
+                    document.getElementById('form-success').style.display = 'block';
+                    form.reset();
+                } else {
+                    // Try to get error message from response
+                    let errorMsg = 'There was an error submitting the form';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData.message) {
+                            errorMsg += `: ${errorData.message}`;
+                        }
+                    } catch (e) { }
+
+                    document.getElementById('form-error').textContent = errorMsg;
+                    document.getElementById('form-error').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('form-error').textContent =
+                    'Network error. Please check your connection and try again.';
+                document.getElementById('form-error').style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        });
+
+        // Add real-time validation
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', () => {
+                // Special handling for full_name field
+                if (input.id === 'full_name') {
+                    const namePattern = /^[A-Za-z ]*$/;
+                    if (namePattern.test(input.value)) {
+                        input.style.borderColor = input.value ? '#00C851' : '#ddd';
+                    } else {
+                        input.style.borderColor = '#ff4444';
+                    }
+                }
+                // Standard validation for other fields
+                else if (input.value === '' || input.checkValidity()) {
+                    input.style.borderColor = '#00C851';
+                } else {
+                    input.style.borderColor = '#ff4444';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
