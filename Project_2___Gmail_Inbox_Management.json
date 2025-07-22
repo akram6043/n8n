@@ -1,0 +1,1056 @@
+{
+  "name": "Project 2 : Gmail Inbox Management",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -5200,
+        -1220
+      ],
+      "id": "8816de69-ffdf-4a1e-a27e-d31ed00d0bc3",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "simple": false,
+        "filters": {
+          "q": "in:spam"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -4540,
+        -1520
+      ],
+      "id": "9527d5de-3360-4e62-8d8a-58d024ada167",
+      "name": "GET_SPAM",
+      "webhookId": "b214b225-3455-4f55-bde1-003bffde788d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -4292,
+        -1300
+      ],
+      "id": "647bca23-e1d3-4316-9d80-6ffb3c7ac090",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"isSPAM\": \"boolean\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -4172,
+        -1300
+      ],
+      "id": "f48adfd6-0520-4a29-bf0d-12673acdb133",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "820e1004-f105-472f-a969-beb9697ca693",
+              "leftValue": "={{ $json.output.isSPAM }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3944,
+        -1520
+      ],
+      "id": "06bc5d53-8876-4966-9d0d-300edf00aa0d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('GET_SPAM').item.json.id }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3724,
+        -1420
+      ],
+      "id": "b384c161-1b6e-450d-a636-0142eb145007",
+      "name": "NOT SPAM",
+      "webhookId": "d04c460a-8e77-4ab7-a67e-82f082b5d297",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a smart spam analyzer. Based on user input analyze whether mail content is spam or not\n\nOutput only boolean (true or false)\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -4320,
+        -1520
+      ],
+      "id": "51c40668-a93b-4f3c-9e07-554c26d86b8b",
+      "name": "SPAM Analyzer"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_UPDATES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "477c5fcb-4ed7-40e4-9990-c57b6029777e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_UPDATES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7bc54d2f-6e20-4f03-a0fc-2c1e514344f1",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_PERSONAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_PERSONAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3fa797f-825f-4a54-a3fe-b93638807660",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_SOCIAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_SOCIAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c2c5fd90-a589-4d1e-9fc7-c573280786b7",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_PROMOTIONS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_PROMOTIONS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5bb7513f-67d4-43f7-929c-1e8ee2b3c9c0",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_FORUMS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_FORUM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -3760,
+        -1120
+      ],
+      "id": "81166fef-7849-43f5-b28d-7fddf6b95520",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 30,
+        "simple": false,
+        "filters": {
+          "q": "in:inbox"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -4500,
+        -880
+      ],
+      "id": "b6414039-a26a-4067-a840-1e0e1c616ded",
+      "name": "GET_INBOX",
+      "webhookId": "b214b225-3455-4f55-bde1-003bffde788d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $('GET_SPAM').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3724,
+        -1620
+      ],
+      "id": "55e95d9d-e234-4c25-a152-65357f5ee4a5",
+      "name": "DELETE SPAM",
+      "webhookId": "3c4346f2-d6e4-4794-8b9a-e192ec5c1879",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c4052425-4060-4ed8-a938-721bad979217",
+              "leftValue": "={{ $json.important }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3944,
+        -878
+      ],
+      "id": "3f583b88-f90f-40cc-9a1b-b9966b59e5b3",
+      "name": "IMPORTANT?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_UPDATES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "477c5fcb-4ed7-40e4-9990-c57b6029777e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_UPDATES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7bc54d2f-6e20-4f03-a0fc-2c1e514344f1",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_PERSONAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_PERSONAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3fa797f-825f-4a54-a3fe-b93638807660",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_SOCIAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_SOCIAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c2c5fd90-a589-4d1e-9fc7-c573280786b7",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_PROMOTIONS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_PROMOTIONS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5bb7513f-67d4-43f7-929c-1e8ee2b3c9c0",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "CATEGORY_FORUMS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "INBOX_FORUM"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -3724,
+        -620
+      ],
+      "id": "8401cf32-5b86-4496-b02b-c85c3d10ebab",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const labels = item.json.labelIds || [];\n  const categoryLabel = labels.find(label => label.startsWith('CATEGORY_')) || 'UNKNOWN';\n  \n  const isImportant = labels.includes('IMPORTANT');\n  \n  return {\n    json: {\n      ...item.json,\n      category: categoryLabel,\n      important: isImportant\n    },\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4242,
+        -878
+      ],
+      "id": "55b1800a-e8e7-484a-8753-43cc591eabab",
+      "name": "CATEGORY"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $('GET_INBOX').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3480,
+        -280
+      ],
+      "id": "bf9493f1-02c5-4354-a5fd-560cdd01ffc9",
+      "name": "DELETE",
+      "webhookId": "3b2c4cf0-17b6-4737-ae29-bba1b619b6ef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('GET_INBOX').item.json.subject }}",
+        "emailType": "html",
+        "message": "={{ String($json.message.content.Body) }}",
+        "options": {
+          "threadId": "={{ $('GET_INBOX').item.json.threadId }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3128,
+        -578
+      ],
+      "id": "90b038e9-5e1a-457a-a6e1-2118ac4ea259",
+      "name": "DRAFT EMAIL",
+      "webhookId": "3b2c4cf0-17b6-4737-ae29-bba1b619b6ef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('GET_INBOX').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3220,
+        -380
+      ],
+      "id": "b1d876c0-3349-41f7-b099-86da7aeaac15",
+      "name": "MARK as READ",
+      "webhookId": "3b2c4cf0-17b6-4737-ae29-bba1b619b6ef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an intelligent bot replying emails. Keep it professional",
+              "role": "system"
+            },
+            {
+              "content": "=Here is the mail to reply - \nSubject :{{ $('GET_INBOX').item.json.subject }}\nEmail Body :{{ $('GET_INBOX').item.json.text }}"
+            },
+            {
+              "content": "=please format the data in JASON format:\n\n{\n\"Subject Line\" : \"\",\n\"Body\" : \"\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -3460,
+        -580
+      ],
+      "id": "0a93a230-4548-4777-8b6e-b4ee8e6bbb0c",
+      "name": "OpenAI_EMAIL DRAFT",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an intelligent bot summarizing emails",
+              "role": "system"
+            },
+            {
+              "content": "=Subject :{{ $('GET_INBOX').item.json.subject }}\nEmail Body :{{ $('GET_INBOX').item.json.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -3540,
+        -900
+      ],
+      "id": "10e4686f-a0d2-4689-8bbf-55806855c1d3",
+      "name": "OpenAI_Summarize",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1yKqFaHgsyD1S2VpE39Bmd6Yug0UYy0v-lpn1u_cYabg",
+          "mode": "list",
+          "cachedResultName": "Email DB for Test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yKqFaHgsyD1S2VpE39Bmd6Yug0UYy0v-lpn1u_cYabg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 115725078,
+          "mode": "list",
+          "cachedResultName": "Sheet5",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yKqFaHgsyD1S2VpE39Bmd6Yug0UYy0v-lpn1u_cYabg/edit#gid=115725078"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Summary": "={{ $json.message.content }}",
+            "From": "={{ $('GET_INBOX').item.json.from.value[0].address }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -3160,
+        -920
+      ],
+      "id": "635c7495-c1f1-4703-a3b3-7384c671c08e",
+      "name": "Update in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yQEtvn5JR4KEsVqb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -3420,
+        -1120
+      ],
+      "id": "1d75390d-37ff-4d35-b0f5-17cf087268f3",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "content": "# SPAM Management\n## - Gets all mail from SPAM box\n## - AI Agent analyzes the content to identify real spam \n## - Real spam gets deleted\n## - NOT spam mail passes to inbox",
+        "height": 600,
+        "width": 1220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4742,
+        -1760
+      ],
+      "typeVersion": 1,
+      "id": "ddba6baa-b0f0-4904-b0f2-d2daab1fb8a8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# INBOX Management\n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 1000,
+        "width": 1840,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4704,
+        -1118
+      ],
+      "typeVersion": 1,
+      "id": "f9ad8da5-4414-4d86-95f6-e8214b619811",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Category based on gmail internal labelids\n\nCATEGORY_PROMOTIONS\nCATEGORY_SOCIAL\nCATEGORY_UPDATES\nCATEGORY_FORUMS\nCATEGORY_PERSONAL\n### - Also separate identifier for IMPORTANT tag",
+        "height": 260,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4320,
+        -720
+      ],
+      "typeVersion": 1,
+      "id": "2032dd06-e279-441c-8bb3-ac406bfda219",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('GET_INBOX').item.json.id }}",
+        "labelIds": [
+          "Label_4694241048291897521"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3240,
+        -740
+      ],
+      "id": "df190425-44fc-48d7-a179-e900ef28ec3d",
+      "name": "ASSIGN LABEL",
+      "webhookId": "1a821518-1279-426d-827e-cc422777e0b4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "GET_SPAM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GET_INBOX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET_SPAM": {
+      "main": [
+        [
+          {
+            "node": "SPAM Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SPAM Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SPAM Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "DELETE SPAM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NOT SPAM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SPAM Analyzer": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET_INBOX": {
+      "main": [
+        [
+          {
+            "node": "CATEGORY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMPORTANT?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CATEGORY": {
+      "main": [
+        [
+          {
+            "node": "IMPORTANT?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI_Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ASSIGN LABEL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI_EMAIL DRAFT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MARK as READ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DELETE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI_EMAIL DRAFT": {
+      "main": [
+        [
+          {
+            "node": "DRAFT EMAIL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI_Summarize": {
+      "main": [
+        [
+          {
+            "node": "Update in Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b983b0e9-2b97-4bc3-aeb4-a5924c8a74b4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d"
+  },
+  "id": "o1C4K42ApZhF9S0S",
+  "tags": []
+}

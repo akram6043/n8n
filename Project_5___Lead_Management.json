@@ -1,0 +1,1502 @@
+{
+  "name": "Project 5 | Lead Management",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Lead Management",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Website URL",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Size",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Budget",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone",
+              "fieldType": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -920,
+        -180
+      ],
+      "id": "2cf3c788-7d31-4bf7-a4cf-b68ecff0a758",
+      "name": "On form submission",
+      "webhookId": "fc1b2cd0-5085-4e51-af11-329ebb92e0cc"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -340,
+        -540
+      ],
+      "id": "9abcb744-3a04-44c5-857d-7f041de2dd13",
+      "name": "Wait",
+      "webhookId": "bad37d34-dc86-495d-8759-3e861915d107"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('On form submission').item.json.submittedAt }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -40,
+        -380
+      ],
+      "id": "fcae9a33-d9fb-4ed7-9968-38d5aafa4d2d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"score\" : \"<number 0-100>\",\n\"status\" : \"<Hot | Warm | Cold>\",\n\"explanation\" : \"short explanation here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        -380
+      ],
+      "id": "a55026eb-eeaf-477c-bc44-901aa2fb3cab",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        -380
+      ],
+      "id": "9cdc07ff-10de-43e3-a3cf-74dc434d4f49",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "channel",
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        700,
+        -540
+      ],
+      "id": "f734bc64-1d4d-4875-aa1e-8387c46e9735",
+      "name": "Get many channels",
+      "webhookId": "a0b2e5aa-2655-429e-bc4d-d8c6fe2b54dd",
+      "credentials": {
+        "slackApi": {
+          "id": "MKIvGlKrU0gt1Nlz",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "301c888b-fd81-4155-a91e-d7d1ea92f54a",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "all-core",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        900,
+        -540
+      ],
+      "id": "28af241e-8d59-4369-a538-df446e14158f",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        -440
+      ],
+      "id": "9895beb8-7664-4c5c-8f97-701d9c83f3ea",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        -140
+      ],
+      "id": "595d803e-368f-42dd-8df3-12935f94ecc9",
+      "name": "Send a message1",
+      "webhookId": "2b41a7da-0f1f-41e8-ac70-49bfce17de4e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o",
+          "mode": "list",
+          "cachedResultName": "Lead Management ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $('Wait').item.json['Full Name'] }}",
+            "Email": "={{ $('Wait').item.json.Email }}",
+            "Company Name": "={{ $('Wait').item.json['Company Name'] }}",
+            "Company Size": "={{ $('Wait').item.json['Company Size'] }}",
+            "Company Website URL": "={{ $('Wait').item.json['Company Website URL'] }}",
+            "Budget": "={{ $('Wait').item.json['Your Budget'] }}",
+            "Score": "={{ $json.output.score }}",
+            "Status": "={{ $json.output.status }}",
+            "Explanation": "={{ $json.output.explanation }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Website URL",
+              "displayName": "Company Website URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Size",
+              "displayName": "Company Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Explanation",
+              "displayName": "Explanation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        480,
+        -340
+      ],
+      "id": "fdfda436-c673-450a-9776-257dfef300cd",
+      "name": "Update Lead DB",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yQEtvn5JR4KEsVqb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o",
+          "mode": "list",
+          "cachedResultName": "Lead Management ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zlHP7TmBJSjbOhiNdRCLCJ3rSM1F7TzIXdBukrxK12o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $('Wait').item.json['Full Name'] }}",
+            "Email": "={{ $('Wait').item.json.Email }}",
+            "Company Name": "={{ $('Wait').item.json['Company Name'] }}",
+            "Company Size": "={{ $('Wait').item.json['Company Size'] }}",
+            "Company Website URL": "={{ $('Wait').item.json['Company Website URL'] }}",
+            "Budget": "={{ $('Wait').item.json['Your Budget'] }}",
+            "Score": "={{ $json.output.score }}",
+            "Status": "={{ $json.output.status }}",
+            "Explanation": "={{ $json.output.explanation }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Website URL",
+              "displayName": "Company Website URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Size",
+              "displayName": "Company Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Explanation",
+              "displayName": "Explanation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        480,
+        -540
+      ],
+      "id": "4727e603-0e4b-4a1c-acc1-c81efd20caf7",
+      "name": "Update Lead DB1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yQEtvn5JR4KEsVqb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c2eb6551-72b7-4218-88ca-83aba83b328b",
+              "leftValue": "={{ $json.validation.isValid }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -520,
+        -180
+      ],
+      "id": "570b354a-f149-4e7c-8cee-757a9152cdd6",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32f12d83-9a1f-4fe5-b292-31897aa18547",
+              "name": "Error Feddback",
+              "value": "=Below information not correct.\n.{{ $json.validation.combined.detailedErrorString }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -260,
+        -80
+      ],
+      "id": "75211b05-99e6-4d04-b21a-f058bbc93ad3",
+      "name": "Capture Error Msg"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Fixed N8N Form Validation Code Node\nconst inputData = $input.all();\n\n// Improved validation functions\nconst validators = {\n  // Full Name validation (2-50 characters, letters and spaces only)\n  validateFullName: (name) => {\n    if (!name || typeof name !== 'string') return false;\n    const nameRegex = /^[a-zA-Z\\s]{2,50}$/;\n    return nameRegex.test(name.trim());\n  },\n\n  // Email validation\n  validateEmail: (email) => {\n    if (!email || typeof email !== 'string') return false;\n    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n    return emailRegex.test(email.trim());\n  },\n\n  // Company Name validation (2-100 characters)\n  validateCompanyName: (company) => {\n    if (!company || typeof company !== 'string') return false;\n    const trimmed = company.trim();\n    return trimmed.length >= 2 && trimmed.length <= 100;\n  },\n\n  // FIXED Website URL validation\n  validateWebsiteURL: (url) => {\n    if (!url || typeof url !== 'string') return false;\n    \n    const trimmed = url.trim();\n    if (trimmed.length === 0) return false;\n    \n    // Very simple and reliable validation\n    // Must contain at least one dot and have valid characters\n    const basicPattern = /^[a-zA-Z0-9][a-zA-Z0-9.-]*\\.[a-zA-Z]{2,}$/;\n    \n    // Remove protocol if present for pattern matching\n    let testUrl = trimmed;\n    if (testUrl.startsWith('http://')) {\n      testUrl = testUrl.substring(7);\n    } else if (testUrl.startsWith('https://')) {\n      testUrl = testUrl.substring(8);\n    }\n    \n    // Basic pattern check\n    if (!basicPattern.test(testUrl)) {\n      return false;\n    }\n    \n    // Try URL constructor as final validation\n    try {\n      const fullUrl = testUrl.startsWith('http') ? testUrl : `https://${testUrl}`;\n      new URL(fullUrl);\n      return true;\n    } catch (e) {\n      // If URL constructor fails, still return true if basic pattern passed\n      // This handles cases where the URL might be valid but not accessible\n      return true;\n    }\n  },\n\n  // Company Size validation (positive integer)\n  validateCompanySize: (size) => {\n    const num = parseInt(size);\n    return !isNaN(num) && num > 0 && num <= 1000000;\n  },\n\n  // Budget validation (positive number)\n  validateBudget: (budget) => {\n    const num = parseFloat(budget);\n    return !isNaN(num) && num > 0 && num <= 10000000;\n  },\n\n  // Phone validation (flexible format, 8-15 digits)\n  validatePhone: (phone) => {\n    if (!phone && phone !== 0) return false;\n    \n    // Convert to string if it's a number\n    const phoneStr = phone.toString();\n    \n    // Remove all non-digit characters\n    const cleanPhone = phoneStr.replace(/\\D/g, '');\n    \n    // Check if it has 8-15 digits\n    return cleanPhone.length >= 8 && cleanPhone.length <= 15;\n  }\n};\n\n// Process each input item\nconst results = inputData.map((item, index) => {\n  const data = item.json;\n  \n  // Extract field values using exact field names from your form\n  const fullName = data['Full Name'];\n  const email = data['Email'];\n  const companyName = data['Company Name'];\n  const websiteURL = data['Company Website URL'];\n  const companySize = data['Company Size'];\n  const budget = data['Your Budget'];\n  const phone = data['Phone'];\n\n  // Perform validations\n  const validationResults = {\n    fullName: {\n      value: fullName,\n      isValid: validators.validateFullName(fullName),\n      error: !validators.validateFullName(fullName) ? 'Full name must be 2-50 characters, letters and spaces only' : null\n    },\n    email: {\n      value: email,\n      isValid: validators.validateEmail(email),\n      error: !validators.validateEmail(email) ? 'Please enter a valid email address' : null\n    },\n    companyName: {\n      value: companyName,\n      isValid: validators.validateCompanyName(companyName),\n      error: !validators.validateCompanyName(companyName) ? 'Company name must be 2-100 characters' : null\n    },\n    websiteURL: {\n      value: websiteURL,\n      isValid: validators.validateWebsiteURL(websiteURL),\n      error: !validators.validateWebsiteURL(websiteURL) ? 'Please enter a valid website URL' : null\n    },\n    companySize: {\n      value: companySize,\n      isValid: validators.validateCompanySize(companySize),\n      error: !validators.validateCompanySize(companySize) ? 'Company size must be a positive number' : null\n    },\n    budget: {\n      value: budget,\n      isValid: validators.validateBudget(budget),\n      error: !validators.validateBudget(budget) ? 'Budget must be a positive number' : null\n    },\n    phone: {\n      value: phone,\n      isValid: validators.validatePhone(phone),\n      error: !validators.validatePhone(phone) ? 'Phone number must contain 8-15 digits' : null\n    }\n  };\n\n  // Check if all validations passed\n  const allValid = Object.values(validationResults).every(field => field.isValid);\n  \n  // Collect all errors in different formats\n  const errors = Object.entries(validationResults)\n    .filter(([key, field]) => !field.isValid)\n    .map(([key, field]) => ({ field: key, error: field.error }));\n\n  // Combined error messages\n  const combinedErrors = {\n    // Single string with all errors separated by commas\n    errorString: errors.map(e => e.error).join(', '),\n    \n    // Single string with field names and errors\n    detailedErrorString: errors.map(e => `${e.field}: ${e.error}`).join('; '),\n    \n    // HTML formatted errors for email templates\n    htmlErrors: errors.map(e => `<li><strong>${e.field}:</strong> ${e.error}</li>`).join(''),\n    htmlErrorList: errors.length > 0 ? `<ul>${errors.map(e => `<li><strong>${e.field}:</strong> ${e.error}</li>`).join('')}</ul>` : '',\n    \n    // Array of field names that failed\n    failedFields: errors.map(e => e.field),\n    \n    // Count of errors\n    errorCount: errors.length\n  };\n\n  // Return validation result\n  return {\n    json: {\n      ...data,\n      validation: {\n        isValid: allValid,\n        errors: errors, // Original array format\n        combined: combinedErrors, // New combined formats\n        details: validationResults\n      }\n    }\n  };\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -740,
+        -180
+      ],
+      "id": "434b0f39-eb8c-4b98-9e68-4086830853dd",
+      "name": "Input Validation"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "=social",
+          "mode": "name"
+        },
+        "text": "=Hi Team\nwe have received a lead with incomplete data. Can you please check manaully whether you can reach the lead\n\nName : {{ $('Input Validation').item.json['Full Name'] }}\nEmail :{{ $('Input Validation').item.json.Email }}\nPhone:{{ $('Input Validation').item.json.Phone }}\nCompany : {{ $('Input Validation').item.json['Company Name'] }}\nWebsite:{{ $('Input Validation').item.json['Company Website URL'] }}\nCompany Size :{{ $('Input Validation').item.json['Company Size'] }}\nBudget :{{ $('Input Validation').item.json['Your Budget'] }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        -80,
+        -80
+      ],
+      "id": "dbf602e4-be82-4ace-8323-ae569236b0d5",
+      "name": "Msg Call Center",
+      "webhookId": "f5e59e8d-c16d-4c7e-9e9d-c54ca9e9670c",
+      "credentials": {
+        "slackApi": {
+          "id": "MKIvGlKrU0gt1Nlz",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Input Validation').item.json.Email }}",
+        "subject": "Greeting from ABC : Lets Connect",
+        "message": "=Hi {{ $('Input Validation').item.json['Full Name'] }}\n\nThanks for your interest. One of our sales representative will connect with you shortly\n\nRegards,\nTeam ABC",
+        "options": {
+          "ccList": "sales@abc.com"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1300,
+        -560
+      ],
+      "id": "a1691ad0-e677-4fa9-8573-0f2445e9ce50",
+      "name": "Msg Hot Leads",
+      "webhookId": "47240fe4-f37d-412a-a7e4-b738e9aab002",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "text": "=We got a hot lead\nName : {{ $('Wait').item.json['Full Name'] }}\nEmail :{{ $('Wait').item.json.Email }}\nCompnay :{{ $('Wait').item.json['Company Name'] }}\nBudget :{{ $('Wait').item.json['Your Budget'] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1080,
+        -640
+      ],
+      "id": "2da8c7a6-69da-4e99-b45c-7b995394cfd2",
+      "name": "Notify Sales Team",
+      "webhookId": "cae3765d-a9b7-4450-8474-92f174197629",
+      "credentials": {
+        "slackApi": {
+          "id": "MKIvGlKrU0gt1Nlz",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an expert lead qualification assistant working for B2B business",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Your task is to review each lead’s details and provide:\n\n1. lead score between 0 and 100 — the higher the score, the more qualified the lead is.\n2. short explanation of the score — why you assigned that score.\n3. Qualification status: Hot, Warm, or Cold based on:\n\n  * Hot = 70–100 (Highly qualified, ready for sales)\n  * Warm = 40–69 (Potential, needs nurturing)\n  * Cold = 0–39 (Low quality or irrelevant)\n\nHere’s the lead’s information:\n\n* Name: {{ $json['Full Name'] }}\n\n* Email Address: {{ $json.Email }}\n\n* Company Name: {{ $json['Company Name'] }}\n\n* Website URL: {{ $json['Company Website URL'] }}\n\n* Company Size: {{ $json['Company Size'] }}\n\n* Budget: {{ $json['Your Budget'] }}\n\nHow to evaluate:\n\n* Leads with professional company email addresses (not @gmail.com/@yahoo.com) score higher.\n* Leads with valid websites and larger company size score higher.\n* Higher budget ranges get higher scores.\n* If the company name appears generic or missing, score lower.\n* Missing or fake data lowers the score.\n\n* response format JASON:\njason\n{\n\"score\" : <number 0-100>,\n\"status\" : \"\"<Hot | Warm | Cold>\"\",\n\"explanation\" : \"short explanation here\"\n}\n\nplease only output jason\n\n------\n## ✅ Example of the Response I Expect:\n\n\njson\n{\n  \"score\": 85,\n  \"status\": \"Hot\",\n  \"explanation\": \"The lead has a company website, a large company size (51-200 employees), provided a professional email, and indicated a budget of $5,000+, suggesting strong potential.\"\n}\n\n------"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        -600
+      ],
+      "id": "3f823670-aefe-4f75-9de3-80a9dd94b766",
+      "name": "Lead Scoring Agent"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.status }}",
+                    "rightValue": "Hot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c7649dbf-e28e-4040-bafb-f3f3c1d421f9"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hot"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bc88b9f7-8420-4006-a5be-95b7ad89bdc2",
+                    "leftValue": "={{ $json.output.status }}",
+                    "rightValue": "Warm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Warn"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b3bb2526-b9db-4f0a-a98b-6075dad6f02a",
+                    "leftValue": "={{ $json.output.status }}",
+                    "rightValue": "Cold",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cold"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        260,
+        -380
+      ],
+      "id": "00780612-dfa8-419d-9429-2d80abdc0c64",
+      "name": "Lead Seperation"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Input Validation').item.json.Email }}",
+        "subject": "Greeting from ABC : Lets Connect",
+        "message": "=Hi {{ $('Input Validation').item.json['Full Name'] }}\n\nThanks for your interest. One of our sales representative will connect with you shortly\n\nRegards,\nTeam ABC",
+        "options": {
+          "ccList": "sales@abc.com"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        -340
+      ],
+      "id": "72d64c0e-5a71-4afa-8864-a0bf8e6b79ec",
+      "name": "Msg Warm Leads",
+      "webhookId": "47240fe4-f37d-412a-a7e4-b738e9aab002",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Get many channels": [
+      {
+        "json": {
+          "id": "C08NPL0A4G3",
+          "name": "feature-request",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_private": false,
+          "created": 1744882591,
+          "is_archived": false,
+          "is_general": false,
+          "unlinked": 0,
+          "name_normalized": "feature-request",
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_pending_ext_shared": false,
+          "pending_shared": [],
+          "context_team_id": "T08NQ6VQNUU",
+          "updated": 1751348435090,
+          "parent_conversation": null,
+          "creator": "U08NQ6VQZ60",
+          "is_ext_shared": false,
+          "shared_team_ids": [
+            "T08NQ6VQNUU"
+          ],
+          "pending_connected_team_ids": [],
+          "is_member": true,
+          "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "purpose": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "previous_names": [],
+          "num_members": 2
+        }
+      },
+      {
+        "json": {
+          "id": "C08NQ6W711S",
+          "name": "all-core",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_private": false,
+          "created": 1744881610,
+          "is_archived": false,
+          "is_general": true,
+          "unlinked": 0,
+          "name_normalized": "all-core",
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_pending_ext_shared": false,
+          "pending_shared": [],
+          "context_team_id": "T08NQ6VQNUU",
+          "updated": 1751102375375,
+          "parent_conversation": null,
+          "creator": "U08NQ6VQZ60",
+          "is_ext_shared": false,
+          "shared_team_ids": [
+            "T08NQ6VQNUU"
+          ],
+          "pending_connected_team_ids": [],
+          "is_member": true,
+          "topic": {
+            "value": "Your go-to channel for organizational resources",
+            "creator": "U08NQ6VQZ60",
+            "last_set": 1744881610
+          },
+          "purpose": {
+            "value": "This channel includes everyone in the workspace. It's a great place for announcements and organizational resources.",
+            "creator": "U08NQ6VQZ60",
+            "last_set": 1744881610
+          },
+          "properties": {
+            "tabs": [
+              {
+                "id": "Ct08NQDMDETC",
+                "type": "canvas",
+                "data": {
+                  "file_id": "F08NQDMDC1Y",
+                  "shared_ts": "1744881613.187259"
+                },
+                "label": ""
+              }
+            ],
+            "tabz": [
+              {
+                "id": "Ct08NQDMDETC",
+                "type": "canvas",
+                "data": {
+                  "file_id": "F08NQDMDC1Y",
+                  "shared_ts": "1744881613.187259"
+                }
+              }
+            ],
+            "use_case": "welcome"
+          },
+          "previous_names": [
+            "all-new-workspace"
+          ],
+          "num_members": 2
+        }
+      },
+      {
+        "json": {
+          "id": "C08NQ6W8F5J",
+          "name": "social",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_private": false,
+          "created": 1744881610,
+          "is_archived": false,
+          "is_general": false,
+          "unlinked": 0,
+          "name_normalized": "social",
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_pending_ext_shared": false,
+          "pending_shared": [],
+          "context_team_id": "T08NQ6VQNUU",
+          "updated": 1748752184162,
+          "parent_conversation": null,
+          "creator": "U08NQ6VQZ60",
+          "is_ext_shared": false,
+          "shared_team_ids": [
+            "T08NQ6VQNUU"
+          ],
+          "pending_connected_team_ids": [],
+          "is_member": true,
+          "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "purpose": {
+            "value": "Other channels are for work. This one’s just for fun. Get to know your teammates and show your lighter side. 🎈",
+            "creator": "U08NQ6VQZ60",
+            "last_set": 1744881610
+          },
+          "properties": {
+            "tabs": [
+              {
+                "id": "Ct08NHFJRCQ5",
+                "type": "canvas",
+                "data": {
+                  "file_id": "F08NHFJDPQV",
+                  "shared_ts": "1744881613.778759"
+                },
+                "label": ""
+              }
+            ],
+            "tabz": [
+              {
+                "id": "Ct08NHFJRCQ5",
+                "type": "canvas",
+                "data": {
+                  "file_id": "F08NHFJDPQV",
+                  "shared_ts": "1744881613.778759"
+                }
+              }
+            ],
+            "use_case": "random"
+          },
+          "previous_names": [],
+          "num_members": 2
+        }
+      },
+      {
+        "json": {
+          "id": "C08NQ6ZJ8E8",
+          "name": "new-channel",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_private": false,
+          "created": 1744881657,
+          "is_archived": false,
+          "is_general": false,
+          "unlinked": 0,
+          "name_normalized": "new-channel",
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_pending_ext_shared": false,
+          "pending_shared": [],
+          "context_team_id": "T08NQ6VQNUU",
+          "updated": 1748752183799,
+          "parent_conversation": null,
+          "creator": "U08NQ6VQZ60",
+          "is_ext_shared": false,
+          "shared_team_ids": [
+            "T08NQ6VQNUU"
+          ],
+          "pending_connected_team_ids": [],
+          "is_member": true,
+          "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "purpose": {
+            "value": "This channel is for everything #new-channel. Hold meetings, share docs, and make decisions together with your team.",
+            "creator": "U08NQ6VQZ60",
+            "last_set": 1744881657
+          },
+          "properties": {
+            "tabs": [
+              {
+                "label": "Canvas",
+                "type": "channel_canvas",
+                "is_disabled": true,
+                "id": "channel_canvas"
+              }
+            ],
+            "tabz": [
+              {
+                "label": "Canvas",
+                "type": "channel_canvas",
+                "is_disabled": true
+              }
+            ],
+            "use_case": "project"
+          },
+          "previous_names": [],
+          "num_members": 2
+        }
+      },
+      {
+        "json": {
+          "id": "C08NQ7CV9EY",
+          "name": "complain",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_private": false,
+          "created": 1744881838,
+          "is_archived": false,
+          "is_general": false,
+          "unlinked": 0,
+          "name_normalized": "complain",
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_pending_ext_shared": false,
+          "pending_shared": [],
+          "context_team_id": "T08NQ6VQNUU",
+          "updated": 1748752183883,
+          "parent_conversation": null,
+          "creator": "U08NQ6VQZ60",
+          "is_ext_shared": false,
+          "shared_team_ids": [
+            "T08NQ6VQNUU"
+          ],
+          "pending_connected_team_ids": [],
+          "is_member": true,
+          "topic": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "purpose": {
+            "value": "",
+            "creator": "",
+            "last_set": 0
+          },
+          "previous_names": [],
+          "num_members": 2
+        }
+      }
+    ],
+    "On form submission": [
+      {
+        "json": {
+          "Full Name": "Akram Hossain",
+          "Email": "akrambuet@gmail",
+          "Company Name": "OSL",
+          "Company Website URL": "www.onnorokom.com",
+          "Company Size": "50",
+          "Your Budget": 5000,
+          "Phone": 1080425,
+          "submittedAt": "2025-07-02T01:02:46.500-04:00",
+          "formMode": "test"
+        }
+      }
+    ],
+    "Input Validation": [
+      {
+        "json": {
+          "Full Name": "Akram Hossain",
+          "Email": "akrambuet@gmail",
+          "Company Name": "OSL",
+          "Company Website URL": "www.onnorokom.com",
+          "Company Size": "50",
+          "Your Budget": 5000,
+          "Phone": 1080425,
+          "submittedAt": "2025-07-02T01:02:46.500-04:00",
+          "formMode": "test",
+          "validation": {
+            "isValid": false,
+            "errors": [
+              {
+                "field": "email",
+                "error": "Please enter a valid email address"
+              },
+              {
+                "field": "phone",
+                "error": "Phone number must contain 8-15 digits"
+              }
+            ],
+            "combined": {
+              "errorString": "Please enter a valid email address, Phone number must contain 8-15 digits",
+              "detailedErrorString": "email: Please enter a valid email address; phone: Phone number must contain 8-15 digits",
+              "htmlErrors": "<li><strong>email:</strong> Please enter a valid email address</li><li><strong>phone:</strong> Phone number must contain 8-15 digits</li>",
+              "htmlErrorList": "<ul><li><strong>email:</strong> Please enter a valid email address</li><li><strong>phone:</strong> Phone number must contain 8-15 digits</li></ul>",
+              "failedFields": [
+                "email",
+                "phone"
+              ],
+              "errorCount": 2
+            },
+            "details": {
+              "fullName": {
+                "value": "Akram Hossain",
+                "isValid": true,
+                "error": null
+              },
+              "email": {
+                "value": "akrambuet@gmail",
+                "isValid": false,
+                "error": "Please enter a valid email address"
+              },
+              "companyName": {
+                "value": "OSL",
+                "isValid": true,
+                "error": null
+              },
+              "websiteURL": {
+                "value": "www.onnorokom.com",
+                "isValid": true,
+                "error": null
+              },
+              "companySize": {
+                "value": "50",
+                "isValid": true,
+                "error": null
+              },
+              "budget": {
+                "value": 5000,
+                "isValid": true,
+                "error": null
+              },
+              "phone": {
+                "value": 1080425,
+                "isValid": false,
+                "error": "Phone number must contain 8-15 digits"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "Capture Error Msg": [
+      {
+        "json": {
+          "Error Feddback": "Please provide right right.email: Please enter a valid email address; phone: Phone number must contain 8-15 digits"
+        }
+      }
+    ],
+    "Msg Call Center": [
+      {
+        "json": {
+          "ok": true,
+          "channel": "C08NQ6W711S",
+          "message": {
+            "user": "U093A582GSX",
+            "type": "message",
+            "ts": "1751451514.622669",
+            "bot_id": "B093A580B27",
+            "app_id": "A093A4Y33M1",
+            "text": "Hi Team\nwe have received a lead with incomplete data. Can you please check manaully whether you can reach the lead\n\nName : Akram Hossain\nEmail :akrambuet@gmail\nPhone:1080425\nCompany : OSL\nWebsite:<http://www.onnorokom.com|www.onnorokom.com>\nCompany Size :50\nBudget :5000\n\n_Automated with this <https://eqp225z2.rpcld.co/workflow/JlMl9euqJ3cECQvQ?utm_source=n8n-internal&amp;utm_medium=powered_by&amp;utm_campaign=n8n-nodes-base.slack_775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d|n8n workflow>_",
+            "team": "T08NQ6VQNUU",
+            "bot_profile": {
+              "id": "B093A580B27",
+              "app_id": "A093A4Y33M1",
+              "user_id": "U093A582GSX",
+              "name": "Demo App",
+              "icons": {
+                "image_36": "https://a.slack-edge.com/80588/img/plugins/app/bot_36.png",
+                "image_48": "https://a.slack-edge.com/80588/img/plugins/app/bot_48.png",
+                "image_72": "https://a.slack-edge.com/80588/img/plugins/app/service_72.png"
+              },
+              "deleted": false,
+              "updated": 1751102031,
+              "team_id": "T08NQ6VQNUU"
+            },
+            "blocks": [
+              {
+                "type": "rich_text",
+                "block_id": "jNC",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "text",
+                        "text": "Hi Team\nwe have received a lead with incomplete data. Can you please check manaully whether you can reach the lead\n\nName : Akram Hossain\nEmail :akrambuet@gmail\nPhone:1080425\nCompany : OSL\nWebsite:"
+                      },
+                      {
+                        "type": "link",
+                        "url": "http://www.onnorokom.com",
+                        "text": "www.onnorokom.com"
+                      },
+                      {
+                        "type": "text",
+                        "text": "\nCompany Size :50\nBudget :5000\n\n"
+                      },
+                      {
+                        "type": "text",
+                        "text": "Automated with this ",
+                        "style": {
+                          "italic": true
+                        }
+                      },
+                      {
+                        "type": "link",
+                        "url": "https://eqp225z2.rpcld.co/workflow/JlMl9euqJ3cECQvQ?utm_source=n8n-internal&amp;utm_medium=powered_by&amp;utm_campaign=n8n-nodes-base.slack_775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d",
+                        "text": "n8n workflow",
+                        "style": {
+                          "italic": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "message_timestamp": "1751451514.622669"
+        }
+      }
+    ],
+    "Notify Sales Team": [
+      {
+        "json": {
+          "ok": true,
+          "channel": "C08NQ6W711S",
+          "message": {
+            "user": "U093A582GSX",
+            "type": "message",
+            "ts": "1751381094.815119",
+            "bot_id": "B093A580B27",
+            "app_id": "A093A4Y33M1",
+            "text": "We got a hot lead\nName : Akram Hossain\nEmail :akrambuet@gmail.com\nCompnay :OSL\nBudget :3000000\n_Automated with this <https://eqp225z2.rpcld.co/workflow/JlMl9euqJ3cECQvQ?utm_source=n8n-internal&amp;utm_medium=powered_by&amp;utm_campaign=n8n-nodes-base.slack_775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d|n8n workflow>_",
+            "team": "T08NQ6VQNUU",
+            "bot_profile": {
+              "id": "B093A580B27",
+              "app_id": "A093A4Y33M1",
+              "user_id": "U093A582GSX",
+              "name": "Demo App",
+              "icons": {
+                "image_36": "https://a.slack-edge.com/80588/img/plugins/app/bot_36.png",
+                "image_48": "https://a.slack-edge.com/80588/img/plugins/app/bot_48.png",
+                "image_72": "https://a.slack-edge.com/80588/img/plugins/app/service_72.png"
+              },
+              "deleted": false,
+              "updated": 1751102031,
+              "team_id": "T08NQ6VQNUU"
+            },
+            "blocks": [
+              {
+                "type": "rich_text",
+                "block_id": "ui67S",
+                "elements": [
+                  {
+                    "type": "rich_text_section",
+                    "elements": [
+                      {
+                        "type": "text",
+                        "text": "We got a hot lead\nName : Akram Hossain\nEmail :akrambuet@gmail.com\nCompnay :OSL\nBudget :3000000\n"
+                      },
+                      {
+                        "type": "text",
+                        "text": "Automated with this ",
+                        "style": {
+                          "italic": true
+                        }
+                      },
+                      {
+                        "type": "link",
+                        "url": "https://eqp225z2.rpcld.co/workflow/JlMl9euqJ3cECQvQ?utm_source=n8n-internal&amp;utm_medium=powered_by&amp;utm_campaign=n8n-nodes-base.slack_775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d",
+                        "text": "n8n workflow",
+                        "style": {
+                          "italic": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "message_timestamp": "1751381094.815119"
+        }
+      }
+    ],
+    "Lead Scoring Agent": [
+      {
+        "json": {
+          "output": {
+            "score": "60",
+            "status": "Hot",
+            "explanation": "The lead has a valid company name and a decent company size (100 employees), but the email address is a personal Gmail account which affects credibility. The budget is substantial, contributing positively to the score."
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Input Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Lead Scoring Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Lead Scoring Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Lead Scoring Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Lead Scoring Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many channels": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead DB1": {
+      "main": [
+        [
+          {
+            "node": "Get many channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Capture Error Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Validation": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Error Msg": {
+      "main": [
+        [
+          {
+            "node": "Msg Call Center",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Sales Team": {
+      "main": [
+        [
+          {
+            "node": "Msg Hot Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Scoring Agent": {
+      "main": [
+        [
+          {
+            "node": "Lead Seperation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Seperation": {
+      "main": [
+        [
+          {
+            "node": "Update Lead DB1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Lead DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead DB": {
+      "main": [
+        [
+          {
+            "node": "Msg Warm Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b92b6366-79cf-49b5-a8c9-4627a5894899",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d"
+  },
+  "id": "JlMl9euqJ3cECQvQ",
+  "tags": []
+}
