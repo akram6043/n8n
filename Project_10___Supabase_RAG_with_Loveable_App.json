@@ -1,0 +1,632 @@
+{
+  "name": "Project 10 | Supabase RAG with Loveable App",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        120,
+        -60
+      ],
+      "id": "117a8cd7-3e50-4510-a3ff-68a468568081",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.projectId }}",
+        "tableName": "chat_memory",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        -20
+      ],
+      "id": "182cc7e5-0ff9-46c6-a7cd-1ea063fed487",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "zbFOV457PoyuH8bO",
+          "name": "supabase postgres"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        660,
+        120
+      ],
+      "id": "6e4aeba3-e1dc-4170-a6e7-6161e97b9cba",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "tjN52FhpdmX6hO1n",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "options": {
+          "systemMessage": "=You are smart agent. use \"Supabase Vector Store1\" to answer user question.\n\nIf user ask question which is not availbale in 'Supabase Vector Store1' then reply politely that you dont have that answer right now and you are currently designed to answe question related to Bangladesh-Labour-Rules-2022-Amendments\n\nIf user asks stange question (i.e who are? who created you?) then give some wity answes ( for example , GOD ha created us all)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -260
+      ],
+      "id": "2529dafa-497b-42ef-9364-3627ee38f149",
+      "name": "PDFChat Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        120
+      ],
+      "id": "53179a81-34bc-4e03-8f03-6d232e4369cc",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('Upload Trigger').item.json.body.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -460,
+        0
+      ],
+      "id": "71e2aada-4038-4044-94eb-83e0f08b3adf",
+      "name": "Default Data Loader",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        140
+      ],
+      "id": "1a7532cc-9e46-444b-b994-2e04f311d2a9",
+      "name": "Recursive Character Text Splitter",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -600,
+        -20
+      ],
+      "id": "4b4fd993-f4d2-4ec5-877b-242952fff1c3",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "4OSX4HqhwnVkWnUG",
+          "name": "OpenAi account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pinecone_load",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -820,
+        -260
+      ],
+      "id": "014f8f17-4d26-46da-96aa-783e9dc3fe2a",
+      "name": "Upload Trigger",
+      "webhookId": "cdd5773d-4811-45fd-856f-c7e8a60d0134",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -220,
+        -240
+      ],
+      "id": "98bea07f-9e00-4817-949d-08df095a0fff",
+      "name": "Upload Response",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pinecone_retrive",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        140,
+        -260
+      ],
+      "id": "eb13fed0-a158-45c4-9b5c-517307b34bcc",
+      "name": "Chat Trigger",
+      "webhookId": "b395efff-e059-4e79-9857-6c76b2cf79d3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        700,
+        -260
+      ],
+      "id": "377ee423-bb55-4432-aa05-c4c186c053ba",
+      "name": "Chat Response"
+    },
+    {
+      "parameters": {
+        "content": "# RAG [Loader]",
+        "height": 640,
+        "width": 860,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -380
+      ],
+      "id": "0fb7cad9-f059-4a8b-a4b0-d18fe439412f",
+      "name": "Sticky Note",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "# RAG [Retriver]",
+        "height": 640,
+        "width": 840,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -380
+      ],
+      "id": "d26c64e0-7ebd-4039-b70e-ad67969f2e2e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "rag_table",
+          "mode": "list",
+          "cachedResultName": "rag_table"
+        },
+        "embeddingBatchSize": 400,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -580,
+        -220
+      ],
+      "id": "a239bce5-588c-4084-b5bd-ffd5cbe585bc",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vhG9fj7KdxMtKWi9",
+          "name": "Supabase api 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Answer question with data stored in the vector store",
+        "tableName": {
+          "__rl": true,
+          "value": "rag_table",
+          "mode": "list",
+          "cachedResultName": "rag_table"
+        },
+        "useReranker": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        -40
+      ],
+      "id": "be08a7a0-0315-4236-8080-2bdf88ce7a70",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vhG9fj7KdxMtKWi9",
+          "name": "Supabase api 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rag_delete",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "4cc42c62-ffff-4d2d-877a-45ca8618f555",
+      "name": "Webhook",
+      "webhookId": "56fbd80a-601a-4c2a-abec-430461b45261",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        380,
+        480
+      ],
+      "id": "5cef1eca-70bf-48e0-9962-1abdafc242d7",
+      "name": "Respond to Webhook",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "uploaded_files",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.file_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        480
+      ],
+      "id": "136e0d67-e095-4eed-a358-16dd8f83255e",
+      "name": "Delete a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vhG9fj7KdxMtKWi9",
+          "name": "Supabase api 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "# Delete File\n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 320,
+        "width": 1200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -580,
+        360
+      ],
+      "typeVersion": 1,
+      "id": "74f68407-069b-4397-b205-6552567f3e7b",
+      "name": "Sticky Note2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "rag_table",
+        "filterType": "string",
+        "filterString": "=metadata->>file_id=like.*{{ $json.id }}*"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        480
+      ],
+      "id": "a295f31a-5b37-4aff-b841-2840c83ab0df",
+      "name": "Delete a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vhG9fj7KdxMtKWi9",
+          "name": "Supabase api 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "metadata.file_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        160,
+        480
+      ],
+      "id": "e9c6ba18-a0cb-4cf6-acd6-b0dbdea86585",
+      "name": "Aggregate",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PDFChat Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "PDFChat Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDFChat Agent": {
+      "main": [
+        [
+          {
+            "node": "Chat Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Trigger": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "PDFChat Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Upload Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "PDFChat Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Delete a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a row": {
+      "main": [
+        [
+          {
+            "node": "Delete a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a row1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1c830643-6aff-45fb-9a1a-aad5540c80cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d"
+  },
+  "id": "S0vA3kPBHwSrhiru",
+  "tags": []
+}
