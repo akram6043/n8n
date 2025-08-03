@@ -1,0 +1,575 @@
+{
+  "name": "Project 12 | Restraunt Order Management",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Restraunt-Menu-SaaS",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -192
+      ],
+      "id": "a75c9263-2883-4d30-b101-d0547b737d15",
+      "name": "Webhook",
+      "webhookId": "ebd32c87-bfe9-47c3-9d14-82aafbfdfe7c"
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        176,
+        -400
+      ],
+      "id": "a994904b-3679-40ed-8580-92dc4fe86206",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "143f1c8c-a9dc-4773-b6fe-585905409314",
+              "name": "Item",
+              "value": "={{ $json.body.items[0].name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        176,
+        208
+      ],
+      "id": "cc3bfe5c-3e52-487c-a264-9e750dcea7b0",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\n\n// Access 'body.items'\nconst itemsArray = input.body?.items;\n\nif (!itemsArray || !Array.isArray(itemsArray)) {\n  throw new Error(\"Expected 'body.items' to be an array.\");\n}\n\nreturn itemsArray.map(item => {\n  return {\n    json: item\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "91075b8d-680e-4c34-9e95-67491a247473",
+      "name": "Code",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        224
+      ],
+      "id": "0a0112ad-0ff2-483b-9ac3-355a6d6148da",
+      "name": "Code1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82c36bff-5600-4bce-9bf2-f12e7b23aeb7",
+              "name": "Orders",
+              "value": "={{ $json.body.items }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        16
+      ],
+      "id": "600949e0-d497-46f8-a6da-177fbedcb7af",
+      "name": "Edit Fields1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code Node - Extract id, name, category, and price from input data\n// Simple approach to handle the data structure\n\n// Get the first input item\nconst inputData = $input.first();\n\n// Log the complete input structure to understand the data format\nconsole.log('Complete input structure:', JSON.stringify(inputData, null, 2));\n\n// Try to access the Orders array directly\nlet ordersArray = [];\n\n// Multiple ways to access the data based on different possible structures\nif (inputData.json && inputData.json.Orders) {\n  ordersArray = inputData.json.Orders;\n} else if (inputData.json && Array.isArray(inputData.json)) {\n  ordersArray = inputData.json;\n} else if (inputData.Orders) {\n  ordersArray = inputData.Orders;\n} else {\n  // If it's a single order object, wrap it in an array\n  ordersArray = [inputData.json || inputData];\n}\n\nconsole.log('Orders array:', ordersArray);\n\n// Process each order\nconst tableData = ordersArray.map(order => {\n  console.log('Processing order:', order);\n  \n  return {\n    id: order.id,\n    name: order.name,\n    category: order.category,\n    price: order.price\n  };\n});\n\nconsole.log('Final table data:', tableData);\n\n// Return the processed data\nreturn tableData.map(row => ({ json: row }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        16
+      ],
+      "id": "4ac35f6f-daae-45e1-99ff-006fb1a4ddc1",
+      "name": "Code2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n    <style>\n        body { \n            font-family: Arial, sans-serif; \n            max-width: 600px; \n            margin: 0 auto; \n            padding: 20px; \n            background-color: #f9f9f9;\n        }\n        .receipt-container {\n            background-color: white;\n            padding: 30px;\n            border-radius: 8px;\n            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n        }\n        .header { \n            text-align: center; \n            border-bottom: 2px solid #333; \n            padding-bottom: 15px;\n            margin-bottom: 20px;\n        }\n        .header h1 {\n            margin: 0 0 10px 0;\n            color: #333;\n        }\n        .items { \n            margin: 20px 0; \n        }\n        .item { \n            display: flex; \n            justify-content: space-between; \n            align-items: center;\n            padding: 10px 0; \n            border-bottom: 1px dotted #ccc; \n        }\n        .item-details {\n            flex: 1;\n        }\n        .item-name {\n            font-weight: bold;\n            font-size: 16px;\n            color: #333;\n        }\n        .item-category {\n            font-style: italic; \n            color: #666; \n            font-size: 14px;\n        }\n        .item-price {\n            font-weight: bold;\n            font-size: 16px;\n            color: #333;\n            min-width: 80px;\n            text-align: right;\n        }\n        .total { \n            font-weight: bold; \n            font-size: 20px; \n            text-align: right; \n            margin-top: 20px; \n            border-top: 2px solid #333; \n            padding-top: 15px;\n            color: #333;\n        }\n        .footer {\n            text-align: center;\n            margin-top: 30px;\n            padding-top: 20px;\n            border-top: 1px solid #eee;\n            color: #666;\n            font-size: 14px;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"receipt-container\">\n        <div class=\"header\">\n            <h1>Restaurant Receipt</h1>\n            <p>Date: {{ new Date().toLocaleDateString() }}</p>\n            <p>Receipt #: {{ Math.floor(Math.random() * 10000) }}</p>\n        </div>\n        \n        <div class=\"items\">\n            {{ $input.all().map(item => `\n                <div class=\"item\">\n                    <div class=\"item-details\">\n                        <div class=\"item-name\">${item.json.name}</div>\n                        <div class=\"item-category\">(${item.json.category})</div>\n                    </div>\n                    <div class=\"item-price\">$${item.json.price}</div>\n                </div>\n            `).join('') }}\n        </div>\n        \n        <div class=\"total\">\n            Total: ${{ $input.all().reduce((sum, item) => sum + parseFloat(item.json.price), 0).toFixed(2) }}\n        </div>\n        \n        <div class=\"footer\">\n            <p>Thank you for dining with us!</p>\n            <p>Generated on {{ new Date().toLocaleString() }}</p>\n        </div>\n    </div>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        16
+      ],
+      "id": "072ca3f2-840c-4305-b06c-75398475112e",
+      "name": "HTML",
+      "executeOnce": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "ishtiaq6041@gmail.com",
+        "subject": "menu",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        16
+      ],
+      "id": "54696b70-cf28-4886-a229-8a0a482e82af",
+      "name": "Send a message",
+      "webhookId": "e75c17b1-a90f-408c-a6e0-8d7e4ffaa4fd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "URL/HTML to PDF",
+        "convertType": "htmlToPDF",
+        "html": "={{ $json.html }}",
+        "advancedOptions": {}
+      },
+      "type": "n8n-nodes-pdfco.PDFco Api",
+      "typeVersion": 1,
+      "position": [
+        384,
+        16
+      ],
+      "id": "ff90e12a-1cc1-4a18-ae20-18eebfc8506e",
+      "name": "PDFco Api",
+      "credentials": {
+        "pdfcoApi": {
+          "id": "M5qmSIhlS75nFvtr",
+          "name": "PDF.co account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        16
+      ],
+      "id": "00085221-2af6-4f00-a840-d46b06cdfd23",
+      "name": "HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "URL/HTML to PDF",
+        "convertType": "htmlToPDF",
+        "html": "={{ $json.html }}",
+        "advancedOptions": {}
+      },
+      "type": "n8n-nodes-pdfco.PDFco Api",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -256
+      ],
+      "id": "d8ccc554-d01f-4008-8761-ccab7b0953d5",
+      "name": "Create PDF Receipt",
+      "credentials": {
+        "pdfcoApi": {
+          "id": "M5qmSIhlS75nFvtr",
+          "name": "PDF.co account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        -400
+      ],
+      "id": "6e7986ea-342f-4592-bad8-a0c85d309847",
+      "name": "GET PDF Receipt"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1rh4dkSVzWr1Omu6463Ef33H_ipeX-Slug-C8Uj7W33c",
+          "mode": "list",
+          "cachedResultName": "Food Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rh4dkSVzWr1Omu6463Ef33H_ipeX-Slug-C8Uj7W33c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1008710320,
+          "mode": "list",
+          "cachedResultName": "Oder History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1rh4dkSVzWr1Omu6463Ef33H_ipeX-Slug-C8Uj7W33c/edit#gid=1008710320"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order ID": "={{ $('Webhook').item.json.body.orderId.split('-')[1] }}",
+            "Email": "={{ $('Webhook').item.json.body.customerEmail }}",
+            "Total": "={{ $('Webhook').item.json.body.total }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        592,
+        -400
+      ],
+      "id": "2e3b7d70-1897-4ec3-92a9-3da5bf3ffc34",
+      "name": "Update Oder DB",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yQEtvn5JR4KEsVqb",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.customerEmail }}",
+        "subject": "Your Order",
+        "message": "={{ $('HTML Form Creator').item.json.html }}",
+        "options": {
+          "senderName": "Akram"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        384,
+        -400
+      ],
+      "id": "a6790558-381b-4434-8f28-5ae955d6f8b2",
+      "name": "Mail Customer",
+      "webhookId": "1d9b7d74-a265-4075-abd4-4bb4bf006e12",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "qBeizKMvB2OZ3BYY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Order Summary</title>\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            max-width: 400px;\n            margin: 20px auto;\n            padding: 20px;\n            background-color: #f5f5f5;\n            color: #333;\n        }\n        .receipt {\n            background: white;\n            padding: 30px;\n            border-radius: 8px;\n            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n        }\n        .header {\n            text-align: center;\n            margin-bottom: 30px;\n        }\n        .title {\n            font-size: 28px;\n            font-weight: bold;\n            margin-bottom: 15px;\n            color: #2c3e50;\n        }\n        .receipt-info {\n            display: flex;\n            justify-content: space-between;\n            margin-bottom: 20px;\n            font-size: 14px;\n            color: #666;\n        }\n        .divider {\n            border-top: 2px solid #333;\n            margin: 20px 0;\n        }\n        .items {\n            margin-bottom: 20px;\n        }\n        .item {\n            display: flex;\n            justify-content: space-between;\n            align-items: flex-start;\n            margin-bottom: 15px;\n            padding-bottom: 10px;\n            border-bottom: 1px dotted #ddd;\n        }\n        .item:last-child {\n            border-bottom: none;\n            margin-bottom: 0;\n        }\n        .item-details {\n            flex: 1;\n        }\n        .item-name {\n            font-weight: bold;\n            font-size: 16px;\n            margin-bottom: 4px;\n        }\n        .item-category {\n            font-size: 12px;\n            color: #888;\n            font-style: italic;\n            margin-bottom: 4px;\n        }\n        .item-description {\n            font-size: 13px;\n            color: #666;\n            line-height: 1.3;\n        }\n        .item-price {\n            font-weight: bold;\n            font-size: 16px;\n            color: #2c3e50;\n            margin-left: 15px;\n        }\n        .quantity {\n            font-size: 12px;\n            color: #888;\n            margin-top: 4px;\n        }\n        .total-section {\n            border-top: 2px solid #333;\n            padding-top: 15px;\n            text-align: right;\n        }\n        .total {\n            font-size: 20px;\n            font-weight: bold;\n            color: #2c3e50;\n        }\n        .watermark {\n            text-align: center;\n            margin-top: 30px;\n            font-size: 12px;\n            color: #bbb;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"receipt\">\n        <div class=\"header\">\n            <div class=\"title\">Order Details</div>\n            <div class=\"receipt-info\">\n                <span>Date: {{ $now.format('M/d/yyyy') }}</span>\n                <span>Order No #: {{ $json.body.orderId.split('-')[1] }}</span>\n            </div>\n        </div>\n        \n        <div class=\"divider\"></div>\n        \n        <div class=\"items\">\n            {{ $json.body.items.map(item => `\n            <div class=\"item\">\n                <div class=\"item-details\">\n                    <div class=\"item-name\">${item.name}</div>\n                    <div class=\"item-category\">(${item.category})</div>\n                    ${item.description ? `<div class=\"item-description\">${item.description}</div>` : ''}\n                    <div class=\"quantity\">${item.quantity || 1} x ${item.price} = ${(parseFloat(item.price) * parseInt(item.quantity || 1)).toFixed(2)}</div>\n                </div>\n                <div class=\"item-price\">$ ${(parseFloat(item.price) * parseInt(item.quantity || 1)).toFixed(2)}</div>\n            </div>\n            `).join('') }}\n        </div>\n        \n        <div class=\"total-section\">\n            <div class=\"total\">Total: ${{ $json.body.items.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity || 1)), 0).toFixed(2) }}</div>\n        </div>\n        \n        <div class=\"watermark\">\n            Thank you for your order!\n        </div>\n    </div>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        -400
+      ],
+      "id": "169cdadd-f04f-43c8-b95b-aa6e7747c934",
+      "name": "HTML Form Creator"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hcti.io/v1/image",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Basic ZTc5ZDFkZmItNDVjZS00ODI0LThlZTEtMWNjZWM4YTYxMjc4OjkwNzkwMjY4LWY5MTEtNGU1YS04MTM2LWExNTk0ZTg2ZWIyMQ=="
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "={{ $json.html }}"
+            },
+            {
+              "name": "full_screen",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -240,
+        -544
+      ],
+      "id": "1e578226-0b21-4f18-b74b-d1fa89fb2373",
+      "name": "HTML to Image"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTML Form Creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "PDFco Api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDFco Api": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Mail Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create PDF Receipt": {
+      "main": [
+        []
+      ]
+    },
+    "GET PDF Receipt": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mail Customer": {
+      "main": [
+        [
+          {
+            "node": "Update Oder DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Form Creator": {
+      "main": [
+        [
+          {
+            "node": "HTML to Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML to Image": {
+      "main": [
+        [
+          {
+            "node": "GET PDF Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5953e31b-60ec-4186-a530-14fcf286eb27",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "775349a6ee29578bdbe5276d8cc4bf4f5c48060e4c0d031f28e89c7dcd9cbd2d"
+  },
+  "id": "zuGq485d1zcvt4Tx",
+  "tags": [
+    {
+      "name": "SaaS",
+      "id": "J2KmZJXQowI63Er9",
+      "createdAt": "2025-08-02T10:58:27.931Z",
+      "updatedAt": "2025-08-02T10:58:27.931Z"
+    }
+  ]
+}
